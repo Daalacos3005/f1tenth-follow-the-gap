@@ -3,7 +3,7 @@ from rclpy.node import Node
 import numpy as np
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
-
+from nav_msgs.msg import Odometry
 
 class MiGap(Node):
 
@@ -22,6 +22,16 @@ class MiGap(Node):
         self.speed = 2.0                  # [m/s] constant speed for now
 
         self.get_logger().info('My controller started')
+        self.center_weight = 0.35
+        self.create_subscription(Odometry, '/ego_racecar/odom', self.odom_cb, 10)
+        self.start_pos=  None
+        self.heading = None
+        self.prev_pos = None
+        self.prev_s = 0.0
+        self.dist_since_line = 0.0
+        self.lap_count = 0
+        self.lap_start_time = None
+        self.best_lap = None
 
 
     def preprocess(self, scan):
@@ -97,9 +107,45 @@ class MiGap(Node):
     def find_best_point(self, start, end, ranges):
         segment = ranges[start:end + 1]
         far_idx = np.where(segment >= segment.max() - 0.1)[0]
-        return start + far_idx[len(far_idx) // 2]
+        i_far = start + far_idx[len(far_idx) // 2]
+        i_center = (start + end) / 2
+        w= self.center_weight
+        return int(round((1-w) * i_far + w * i_center))
 
 
+
+    def odom_cb(self, msg):
+        x = msg.pose.pose.position.x
+        y = msg.pose.pose.position.y
+        q = msg.pose.pose.orientation
+        now = self.get_clock().now()
+        pos = np.array([x, y])
+        if self.start_pos is None:
+            yaw = 2.0 * np.arctan2(q.z, q.w)
+            self.start_pos = pos
+            self.heading = np.array([np.cos(yaw), np.sin(yaw)])
+            self.prev_pos = pos
+            self.lap_start_time = now
+            self.get_logger().info('Start line saved. Stopwatch started.')
+            return
+        self.dist_since_line += float(np.linalg.norm(pos - self.prev_pos))
+        self.prev_pos = pos
+        rel = pos - self.start_pos
+        s = float(np.dot(rel, self.heading))
+        lateral = abs(float(-rel[0] * self.heading[1] + rel[1] * self.heading[0]))
+        crossed = self.prev_s < 0.0 and s >= 0.0
+        if crossed and lateral < 3.0 and self.dist_since_line > 30.0:
+            lap_time = (now - self.lap_start_time).nanoseconds / 1e9
+            self.lap_count += 1
+            if self.best_lap is None or lap_time < self.best_lap:
+                self.best_lap = lap_time
+            self.get_logger().info(
+                f'Lap {self.lap_count} completed: {lap_time:.3f} s  '
+                f'(best: {self.best_lap:.3f} s)')
+            self.lap_start_time = now
+            self.dist_since_line = 0.0
+        self.prev_s = s
+    
     def scan_cb(self, scan):
         ranges, angles = self.preprocess(scan)
         ranges, corners = self.extend_disparities(ranges, scan.angle_increment)
