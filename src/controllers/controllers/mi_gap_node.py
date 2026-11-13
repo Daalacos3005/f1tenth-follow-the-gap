@@ -4,6 +4,7 @@ import numpy as np
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
 from nav_msgs.msg import Odometry
+from visualization_msgs.msg import Marker, MarkerArray
 
 class MiGap(Node):
 
@@ -13,13 +14,19 @@ class MiGap(Node):
         self.pub = self.create_publisher(AckermannDriveStamped, '/drive', 10)
 
         # Parameters of the algorithm
-        self.max_range = 10.0             # [m] distances are capped at this value
-        self.car_width = 0.31             # [m] width of the F1Tenth car
-        self.safety_margin = 0.15         # [m] extra space on each side of the car
-        self.disparity_threshold = 0.4    # [m] jump between two rays that means "corner"
-        self.bubble_radius = 0.45         # [m] safety bubble around the closest point
-        self.gap_threshold = 1.5          # [m] a ray is "free" if it is farther than this
-        self.speed = 2.0                  # [m/s] constant speed for now
+        self.max_range = 10.0             
+        self.car_width = 0.31             
+        self.safety_margin = 0.15         
+        self.disparity_threshold = 0.4    
+        self.bubble_radius = 0.45         
+        self.gap_threshold = 1.5          
+        self.v_max = 9.5               
+        self.v_min = 5                
+        self.steer_for_vmin = 0.30   
+        self.steer_for_vmin = 0.30
+        self.brake_decel = 5.5
+        self.front_margin = 2.0
+        self.front_cone_deg = 8.0     
 
         self.get_logger().info('My controller started')
         self.center_weight = 0.35
@@ -32,6 +39,9 @@ class MiGap(Node):
         self.lap_count = 0
         self.lap_start_time = None
         self.best_lap = None
+        self.last_lap = None
+        self.lap_pub = self.create_publisher(MarkerArray, '/lap_info', 10)
+        self.create_timer(0.2, self.status_cb)
 
 
     def preprocess(self, scan):
@@ -137,6 +147,7 @@ class MiGap(Node):
         if crossed and lateral < 3.0 and self.dist_since_line > 30.0:
             lap_time = (now - self.lap_start_time).nanoseconds / 1e9
             self.lap_count += 1
+            self.last_lap = lap_time
             if self.best_lap is None or lap_time < self.best_lap:
                 self.best_lap = lap_time
             self.get_logger().info(
@@ -146,9 +157,39 @@ class MiGap(Node):
             self.dist_since_line = 0.0
         self.prev_s = s
     
+    def status_cb(self):
+        if self.start_pos is None:
+            return
+        now = self.get_clock().now()
+        current = (now - self.lap_start_time).nanoseconds /1e9
+        last = f'{self.last_lap: .3f} s' if self.last_lap is not None else '--'
+        best = f'{self.last_lap: .3f} s' if self.best_lap is not None else '--'
+        marker = Marker()
+        marker.header.frame_id = 'ego_racecar/base_link'
+        marker.header.stamp = now.to_msg()
+        marker.ns = 'lap_info'
+        marker.id = 0
+        marker.type = Marker.TEXT_VIEW_FACING
+        marker.action = Marker.ADD
+        marker.pose.position.x = 0.0
+        marker.pose.position.y = 2.5
+        marker.pose.position.z = 1.0
+        marker.pose.orientation.w = 1.0
+        marker.scale.z = 1.2
+        marker.color.r = 1.0
+        marker.color.g = 1.0
+        marker.color.b = 0.0
+        marker.color.a = 1.0
+        marker.text = (f'Laps: {self.lap_count} | Time: {current: .1f} s |'
+                        f'Last: {last} | Best: {best}')
+        array = MarkerArray()
+        array.markers.append(marker)
+        self.lap_pub.publish(array)
+
+
     def scan_cb(self, scan):
-        ranges, angles = self.preprocess(scan)
-        ranges, corners = self.extend_disparities(ranges, scan.angle_increment)
+        raw, angles = self.preprocess(scan)
+        ranges, corners = self.extend_disparities(raw, scan.angle_increment)
         ranges, i_min = self.apply_bubble(ranges, scan.angle_increment)
         start, end, length = self.find_max_gap(ranges)
 
@@ -158,14 +199,22 @@ class MiGap(Node):
         else:
             best = self.find_best_point(start, end, ranges)
             steering = np.clip(angles[best], -0.4189, 0.4189)
-            speed = self.speed
+            ratio = min(abs(steering) / self.steer_for_vmin, 1.0)
+            speed_a = self.v_max - (self.v_max - self.v_min) * ratio
+            front = raw[np.abs(angles) <= np.radians(self.front_cone_deg)]
+            free = max(float(front.min()) - self.front_margin, 0.0)
+            speed_b = float(np.sqrt(self.v_min ** 2 + 2.0 * self.brake_decel * free))
+            speed = min(speed_a, speed_b)
 
         self.get_logger().info(
             f'Corners: {corners:2d}  '
             f'Closest: {np.degrees(angles[i_min]):6.1f} deg  '
             f'Gap: [{np.degrees(angles[start]):6.1f}, {np.degrees(angles[end]):6.1f}] deg  '
             f'Target: {np.degrees(angles[best]):6.1f} deg  '
-            f'Steering: {np.degrees(steering):6.1f} deg',
+            f'Steering: {np.degrees(steering):6.1f} deg  '
+            f'Speed: {speed:4.1f} m/s'
+            f'Laps: {self.lap_count}'
+            f'Best: {(self.best_lap or 0.0):7.3f} s',
             throttle_duration_sec=0.5)
 
         msg = AckermannDriveStamped()
