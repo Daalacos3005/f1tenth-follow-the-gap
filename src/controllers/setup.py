@@ -22,7 +22,6 @@ setup(
         'console_scripts': [
             'ttc_node = controllers.ttc_node:main',
             'pid_node = controllers.pid_node:main',
-            'gap_node = controllers.gap_node:main',
             'mi_gap = controllers.mi_gap_node:main',
             'purepursuit_node = controllers.purepursuit_node:main',
             'rrt_node = controllers.rrt_node:main',

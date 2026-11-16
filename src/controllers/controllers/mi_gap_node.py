@@ -163,7 +163,7 @@ class MiGap(Node):
         now = self.get_clock().now()
         current = (now - self.lap_start_time).nanoseconds /1e9
         last = f'{self.last_lap: .3f} s' if self.last_lap is not None else '--'
-        best = f'{self.last_lap: .3f} s' if self.best_lap is not None else '--'
+        best = f'{self.best_lap: .3f} s' if self.best_lap is not None else '--'
         marker = Marker()
         marker.header.frame_id = 'ego_racecar/base_link'
         marker.header.stamp = now.to_msg()
