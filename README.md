@@ -110,6 +110,7 @@ Tópicos que usa:
 ## 4. Cómo ejecutarlo
 
 Se necesita ROS 2 Humble y el simulador f1tenth_gym_ros, instalados como en el tutorial del curso. En mi caso los corro dentro de un contenedor Docker con Ubuntu 22.04 y Humble. Este repositorio ya incluye el mapa de Catalunya.
+ VIDEO EXPLICATIVO: https://youtu.be/4t9ZTQNw1KU 
 
 ### Preparar
 
