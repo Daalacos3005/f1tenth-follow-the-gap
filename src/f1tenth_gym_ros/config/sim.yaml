@@ -46,7 +46,7 @@ bridge:
     map_img_ext: '.png'
 
     # opponent parameters
-    num_agent: 1
+    num_agent: 2
 
     # ego starting pose on map
     sx: 0.0
@@ -60,3 +60,8 @@ bridge:
 
     # teleop
     kb_teleop: True
+
+
+    sx1: -2.70
+    sy1: -4.21
+    stheta1: -2.14
