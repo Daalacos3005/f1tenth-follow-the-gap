@@ -42,7 +42,7 @@ bridge:
     scan_beams: 1080
 
     # map parameters
-    map_path: '/home/david/F1Tenth-Repository/src/f1tenth_gym_ros/maps/Catalunya_map'
+    map_path: '/home/david/F1Tenth-Repository/src/f1tenth_gym_ros/maps/Catalunya_obs'
     map_img_ext: '.png'
 
     # opponent parameters
@@ -54,14 +54,12 @@ bridge:
     stheta: -2.14
 
     # opp starting pose on map
-    sx1: 9.5
-    sy1: 8.5
-    stheta1: 3.14
+    sx1: -3.70
+    sy1: -4.21
+    stheta1: -2.14
 
     # teleop
     kb_teleop: True
 
 
-    sx1: -2.70
-    sy1: -4.21
-    stheta1: -2.14
+    

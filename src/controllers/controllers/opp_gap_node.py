@@ -20,13 +20,13 @@ class MiOpp(Node):
         self.disparity_threshold = 0.4    
         self.bubble_radius = 0.45         
         self.gap_threshold = 1.5          
-        self.v_max = 5.0               
+        self.v_max = 6.5           
         self.v_min = 3               
         self.steer_for_vmin = 0.30   
         self.steer_for_vmin = 0.30
         self.brake_decel = 5.5
-        self.front_margin = 2.0
-        self.front_cone_deg = 8.0     
+        self.front_margin = 3.0
+        self.front_cone_deg = 14.0
 
         self.get_logger().info('My controller started')
         self.center_weight = 0.35
