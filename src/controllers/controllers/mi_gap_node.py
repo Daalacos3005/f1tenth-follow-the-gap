@@ -26,7 +26,7 @@ class MiGap(Node):
         self.steer_for_vmin = 0.30
         self.brake_decel = 5.5
         self.front_margin = 2.0
-        self.front_cone_deg = 10.0
+        self.front_cone_deg = 8.0     
 
         self.get_logger().info('My controller started')
         self.center_weight = 0.35
