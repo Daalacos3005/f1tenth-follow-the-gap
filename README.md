@@ -6,8 +6,21 @@ Author: David Alejandro Acosta Lara
 
 ## Videos
 
-- Part 1, 10 laps on the empty track: https://youtu.be/JLJOk-7RoX0
-- Part 2, 10 laps with obstacles and a second robot: https://youtu.be/Tq_DhnBHp64
+- Part 1, 10 laps on the empty track: https://youtu.be/R2zb1wxeGxU 
+- Part 2, 10 laps with obstacles and a second robot: https://youtu.be/VYLAce3_tFw
+
+## Recorded data
+
+I recorded the topics /scan, /ego_racecar/odom and /drive with ros2 bag during the 10 laps of each part and converted them to CSV with tools/bag_to_csv.py.
+
+- Part 1 data: https://drive.google.com/file/d/1KSzitwdU4pR1uaGulKx8Iug8MXLm-JPS/view?usp=sharing
+- Part 2 data: https://drive.google.com/file/d/1RnzC3khG2e_c9VdPasu_zdGBQ8Wc0TtR/view?usp=sharing
+
+Each folder has three files:
+
+- odom.csv has the time, the position x and y, the heading, the linear velocity and the angular velocity of the car.
+- drive.csv has the time, the speed and the steering angle sent by the controller.
+- scan.csv has the time and the 1080 LIDAR distances. It keeps one scan out of every ten to keep the file size reasonable.
 
 # Part 1: Follow the Gap on the empty track
 
@@ -15,7 +28,7 @@ Author: David Alejandro Acosta Lara
 
 - 10 consecutive laps completed, without any collision.
 - Lap time of around 51 s.
-- Evidence video: https://youtu.be/JLJOk-7RoX0
+- Evidence video: https://youtu.be/R2zb1wxeGxU 
 
 The video shows the 10 laps with the lap counter, the stopwatch and the best time. The controller draws them in RViz and also prints them in the terminal.
 
@@ -175,7 +188,7 @@ In the final version of the repository, sim.yaml is set up for Part 2. To run Pa
 
 - 10 consecutive laps with no collision, with more obstacles than the 5 required and the second robot on the track.
 - The best lap of Part 2 is 55.876 s.
-- Evidence video: https://youtu.be/Tq_DhnBHp64
+- Evidence video: https://youtu.be/VYLAce3_tFw
 
 ## What I did
 
