@@ -16,7 +16,7 @@ I recorded the topics /scan, /ego_racecar/odom and /drive with ros2 bag during t
 - Part 1 data: https://drive.google.com/file/d/1KSzitwdU4pR1uaGulKx8Iug8MXLm-JPS/view?usp=sharing
 - Part 2 data: https://drive.google.com/file/d/1RnzC3khG2e_c9VdPasu_zdGBQ8Wc0TtR/view?usp=sharing
 
-Each folder has three files:
+Each folder has three files per car:
 
 - odom.csv has the time, the position x and y, the heading, the linear velocity and the angular velocity of the car.
 - drive.csv has the time, the speed and the steering angle sent by the controller.
