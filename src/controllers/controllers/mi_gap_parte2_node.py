@@ -25,7 +25,7 @@ class MiGap(Node):
         self.v_max = 9.5               
         self.v_min = 5                
         self.steer_for_vmin = 0.30   
-        self.steer_for_vmin = 0.30
+        
         self.brake_decel = 5.5
         self.front_margin = 2.0
         self.front_cone_deg = 10.0
